@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#
+# A simple bash script to import all MySQL backup.
+#
+# @author
+#   Gerald Z. Villorente
+#
+# @date
+#   August 31, 2014
+#
+bold=`tput bold`
+normal=`tput sgr0`
+# Man page.
+usage() {
+  echo "
+    MySQL importer how-to.
+
+    Parameters:
+
+      ${bold}-i${normal}         Displays the help information.
+      ${bold}-d${normal}         The backup directory.
+      ${bold}-u${normal}         MySQL username.
+      ${bold}-p${normal}         MySQL password.
+      ${bold}-h${normal}         MySQL hostname.
+      ${bold}-e${normal}         Backup files to exclude.
+
+    Example:
+
+      ${bold}mysqlimporter -u squak -p -h 127.0.0.1 -d /home/squak/db_backup/ -e test.sql drupal_1.sql${normal}
+      ${bold}mysqlimporter -i${normal}
+  ";
+  exit
+}
+#
+# Get options.
+while getopts u:ph:d:e:i opt; do
+  case "${opt}" in
+    u)
+      USER=${OPTARG}
+      ;;
+    p)
+      echo -n "Enter MySQL $USER password: "
+      read password
+      PASSWORD=$password
+      ;;
+    h)
+      HOST=${OPTARG}
+      ;;
+    d)
+      DIRECTORY=${OPTARG}
+      ;;
+    e)
+      EXCLUDE=${OPTARG}
+      ;;
+    i)
+      usage
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" 2>&1
+      exit 1
+      ;;
+  esac
+done
+#
+# Debug params.
+function debug() {
+  echo "-u $USER"
+  echo "-p $PASSWORD"
+  echo "-h $HOST"
+  echo "-d $DIRECTORY"
+  echo "-e $EXCLUDE"
+  exit
+}
+
+# Execute debug.
+#debug
+#
+# Navigate to backup directory
+cd $DIRECTORY
+for f in * ; do
+  name=${f%.sql}
+  if [[ -z "$PASSWORD" ]]; then
+    mysqladmin -u $USER create ${name##*/}
+    mysql -u $USER ${name##*/} < $f
+  else
+    mysqladmin -u $USER -p$PASSWORD create ${name##*/}
+    mysql -u $USER -p$PASSWORD ${name##*/} < $f
+  fi
+done
