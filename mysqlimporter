@@ -8,8 +8,10 @@
 # @date
 #   August 31, 2014
 #
+
 bold=`tput bold`
 normal=`tput sgr0`
+
 # Man page.
 usage() {
   echo "
@@ -31,7 +33,7 @@ usage() {
   ";
   exit
 }
-#
+
 # Get options.
 while getopts u:ph:d:e:i opt; do
   case "${opt}" in
@@ -61,7 +63,12 @@ while getopts u:ph:d:e:i opt; do
       ;;
   esac
 done
-#
+
+# Check if no options were passed then return command options.
+if [ "$#" -eq 0 ]; then
+  usage
+fi
+
 # Debug params.
 function debug() {
   echo "-u $USER"
@@ -74,8 +81,8 @@ function debug() {
 
 # Execute debug.
 #debug
-#
-# Navigate to backup directory
+
+# Navigate to backup directory.
 cd $DIRECTORY
 for f in * ; do
   name=${f%.sql}
